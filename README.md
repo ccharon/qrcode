@@ -7,7 +7,7 @@ The project is ment as a demo trying things for some other application. For a sm
 ![qrcode dosbox](./doc/qrcode.png)
 
 ## usage
-start the program with 2 parameters. the first parameter is the codepage you are using. The parameter is uses for UTF-8 conversion of the Text in Parameter 2. Right now the program supports codepages 437, 850, 852, 866, 737. The QR Code should handle all characters of these codepages.
+Start the program with 2 parameters. The first parameter is the codepage you are using. It is used for UTF-8 conversion of the text in parameter 2. Right now the program supports codepages 437, 850, 852, 866, 737. The QR Code should handle all characters of these codepages.
 
 ```
 C:\>qrcode.exe 437 "this is a short text that i want to see as qrcode"
