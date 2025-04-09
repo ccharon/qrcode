@@ -35,8 +35,8 @@ namespace charconv {
         if (!input) {
             throw std::invalid_argument("Input string cannot be null.");
         }
-
         std::string utf8Text;
+
         for (const char* p = input; *p; ++p) {
             unsigned char ch = static_cast<unsigned char>(*p);
             
@@ -51,7 +51,10 @@ namespace charconv {
             }
         }
 
-        const char* utf8TextPtr = utf8Text.c_str();
+        // Allocate memory for the UTF-8 char* and copy the content
+        char* utf8TextPtr = new char[utf8Text.size() + 1];
+        std::strcpy(utf8TextPtr, utf8Text.c_str());
+
         return utf8TextPtr;
     }
 

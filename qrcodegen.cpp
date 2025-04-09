@@ -282,7 +282,7 @@ QrCode QrCode::encodeBinary(const vector<uint8_t> &data, Ecc ecl) {
 
 QrCode QrCode::encodeSegments(const vector<QrSegment> &segs, Ecc ecl,
         int minVersion, int maxVersion, int mask, bool boostEcl) {
-    if (!(MIN_VERSION <= minVersion && minVersion <= maxVersion && maxVersion <= MAX_VERSION) || mask < -1 || mask > 7)
+	if (!(MIN_VERSION <= minVersion && minVersion <= maxVersion && maxVersion <= MAX_VERSION) || mask < -1 || mask > 7)
         throw std::invalid_argument("Invalid value");
 
     // Find the minimal version number to use
