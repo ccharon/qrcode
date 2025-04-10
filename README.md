@@ -1,17 +1,39 @@
-# qrcode - a msdos qrcode generator
+# QRCode - A MS-DOS QR Code Generator
 
-This is a qrcode generator running under MS-DOS, it needs a 8088 cpu and a CGA compatible graphics card. The application is based on the C++ Version of Nayuki QR Code-generator https://github.com/nayuki/QR-Code-generator modified to compile with openwatcom 1.9 and to run under dos. (or dosbox if you like)
+This is a QR Code generator for MS-DOS. It requires an 8088 CPU and a CGA-compatible graphics card. The application is based on the C++ version of Nayuki's [QR Code generator](https://github.com/nayuki/QR-Code-generator), adapted to compile with Open Watcom 1.9 and run under MS-DOS (or DOSBox).
 
-The project is ment as a demo trying things for some other application. For a smaller qrcode like this my NEC V20 needs about 15-20s.
+The project is meant as a demo for experimenting with QR code generation. For smaller QR codes, my NEC V20 takes about 15–20 seconds to generate one.
 
-![qrcode dosbox](./doc/qrcode.png)
+As QR codes require text to be in UTF-8, the input text is automatically converted from your system's codepage to UTF-8. Currently supported codepages are 850, 852, 858, 866, 737, and 437, with 437 as the fallback.
 
-## usage
-Start the program with 2 parameters. The first parameter is the codepage you are using. It is used for UTF-8 conversion of the text in parameter 2. Right now the program supports codepages 437, 850, 852, 866, 737. The QR Code should handle all characters of these codepages.
+## Features
+- Generates QR codes in CGA 320x200 mode.
+- Supports UTF-8 encoding with automatic codepage conversion.
+- Compatible with MS-DOS and DOSBox.
 
-```
-C:\>qrcode.exe 437 "this is a short text that i want to see as qrcode"
-C:\>qrcode.exe 850 "auch dieser Text $%! sollte ohne größere Probleme gehn! Bähh."
+## Usage
+Start the program with your text as an argument. If the text contains spaces, enclose it in double quotes.
 
-C:\>qrcode.exe https://reddit.com
-```
+### Examples
+
+| C:\>qrcode.exe "https://github.com/ccharon/qrcode"    |
+| ----------------------------------------------------- |
+| ![qrcode dosbox](./doc/qrcode.png)                    | 
+
+| C:\>qrcode.exe "WIFI:T:WPA;S:examplenet;P:secret;;"   |
+| ----------------------------------------------------- |
+| ![qrcode dosbox](./doc/qrwifi.png)                    | 
+
+| C:\>qrcode.exe                                        |
+| ----------------------------------------------------- |
+| ![qrcode dosbox](./doc/usage.png)                     | 
+
+## Project Setup
+The project was built using Open Watcom 1.9 on Windows. To build the project:
+
+1. Install the Open Watcom 1.9 compiler.
+2. Clone this repository.
+3. Run wmake to build the executable.
+
+## License
+This project is licensed under the MIT License. See the LICENSE file for details.
