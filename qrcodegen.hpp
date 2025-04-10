@@ -23,7 +23,8 @@
  * 2025-04-07, Charon: modified sources to compile with watcom 1.9 C++ compiler
  */
 
-#pragma once
+#ifndef QRCODEGEN_HPP
+#define QRCODEGEN_HPP
 
 #include <cstdint>
 #include <string>
@@ -553,3 +554,5 @@ class BitBuffer : public std::vector<bool> {
 };
 
 }
+
+#endif  // QRCODEGEN_HPP
