@@ -1,8 +1,8 @@
-/* 
+/*
  * QR Code generator
- * 
+ *
  * Copyright (c) ccharon
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
  * the Software without restriction, including without limitation the rights to
@@ -21,42 +21,53 @@
  *
  */
 
-#include <iostream>
-#include <dos.h>
 #include <conio.h>
-#include "qrcodegen.hpp"
-#include "charconv.hpp"
+#include <dos.h>
 
+#include <iostream>
+
+#include "charconv.hpp"
+#include "qrcodegen.hpp"
+
+using charconv::CharConverter;
 using qrcodegen::QrCode;
 using qrcodegen::QrSegment;
 
-
 // Function prototypes
-static void printQrCGA(const QrCode &qr, const char *info);
+static void printQrCGA(const QrCode& qr);
 static void setPixel(int x, int y, int color);
 static void setVideoMode(unsigned char mode);
 static uint8_t getVideoMode();
 static void printUsage();
+static uint16_t getSystemCodepage();
 
 int main(int argc, char* argv[]) {
     // Check if the required parameters are provided
-    if (argc != 3) {
+    if (argc != 2) {
         printUsage();
         return EXIT_FAILURE;
     }
 
-    // Get the codepage parameter
-    const char* codepage = argv[1];
-    const char* text = argv[2];
-	
-	try {
-        // Create a CharConverter instance with the specified codepage
-        charconv::CharConverter converter(codepage);
-        const char* utf8Text = converter.convert(text);
+    const char* text = argv[1];
 
-		// Generate the QR code
-		const QrCode qr = QrCode::encodeText(utf8Text, QrCode::LOW);
-		printQrCGA(qr, text);
+    try {
+        // Convert the text to UTF-8 using the system codepage
+        char utf8Text[2048];
+        const CharConverter converter(getSystemCodepage());
+        converter.convert(text, utf8Text, 2048);
+
+        // Generate the QR Code
+        const QrCode qr = QrCode::encodeText(utf8Text, QrCode::LOW);
+
+        // remember current mode and set CGA 320x200 4 color mode
+        uint8_t initialVideoMode = getVideoMode();
+        setVideoMode(0x04);
+
+        printQrCGA(qr);
+
+        // Wait for a key press and restore previous mode
+        getch();
+        setVideoMode(initialVideoMode);
 
     } catch (const std::exception& e) {
         std::cerr << "Error: " << e.what() << std::endl;
@@ -68,90 +79,107 @@ int main(int argc, char* argv[]) {
 
 // Function to print usage information
 static void printUsage() {
-    std::cout << "Usage: qrcode.exe <codepage> <text>" << std::endl
-              << "  <codepage>   The codepage to use for text conversion (437 or 850)." << std::endl
-              << "  <text>       The message to encode in the QR code." << std::endl
+    std::cout << "Generate QR Codes for MS-DOS CGA systems. (c) 2025 Christian Charon" << std::endl
+              << "Contact: ccharon@mailbox.org | Licensed under the MIT License." << std::endl
+              << "Sources: https://github.com/ccharon/qrcode" << std::endl
+              << std::endl
+              << "Usage: qrcode.exe \"<text>\"" << std::endl
+              << std::endl
+              << "Options:" << std::endl
+              << "  <text>       The message to encode in the QR Code." << std::endl
+              << std::endl
               << "Examples:" << std::endl
-              << "  qrcode.exe 437 \"Hello, world!\"" << std::endl;
+              << "  qrcode.exe \"Hello, world!\"" << std::endl
+              << "  qrcode.exe \"WIFI:T:WPA;S:examplenet;P:secret;;\"" << std::endl
+              << std::endl
+              << "The text for the QR Code is encoded to UTF-8. Automatic conversion from" << std::endl
+              << "codepages 437, 850, 852, 858, 866, and 737 is supported, 437 is fallback." << std::endl
+              << std::endl;
 }
 
 /*---- CGA Mode Helper ----*/
 
+// BIOS Interrupt call to set the video mode
 static void setVideoMode(uint8_t mode) {
-	union REGS regs;
-	regs.h.ah = 0x00;
-	regs.h.al = mode;
-	int86(0x10, &regs, &regs);
+    union REGS regs;
+    regs.h.ah = 0x00;
+    regs.h.al = mode;
+    int86(0x10, &regs, &regs);
 }
 
+// BIOS Interrupt call to get the current video mode
 static uint8_t getVideoMode() {
-	union REGS regs;
-	regs.h.ah = 0x0F;
-	int86(0x10, &regs, &regs);
-	return regs.h.al;
+    union REGS regs;
+    regs.h.ah = 0x0F;
+    int86(0x10, &regs, &regs);
+    return regs.h.al;
 }
 
-// Function to set a pixel in CGA 320x200 4 color mode
+// Render a centered QR code in CGA 320x200 mode
+static void printQrCGA(const QrCode& qr) {
+    const int border = 4;  // Border size in QR modules
+    const int scaleX = 2;  // Default horizontal scale factor (pixels per module)
+    const int scaleY = 2;  // Default vertical scale factor (pixels per module)
+
+    const int qrSize = qr.getSize() + 2 * border;  // QR code size including border (in modules)
+    const int pixelWidth = qrSize * scaleX;        // Total width in pixels
+    const int pixelHeight = qrSize * scaleY;       // Total height in pixels
+
+    const bool fits = (pixelWidth <= 320 && pixelHeight <= 200);
+
+    if (!fits) {
+        throw std::runtime_error("QR code is too large to fit on the screen.");
+    }
+
+    // Calculate the starting position to center the QR code
+    int startX = (320 - pixelWidth) / 2;   // Horizontal centering
+    int startY = (200 - pixelHeight) / 2;  // Vertical centering
+
+    // Render the QR code
+    for (int y = -border; y < qr.getSize() + border; y++) {          // rows
+        for (int x = -border; x < qr.getSize() + border; x++) {      // columns
+            int color = qr.getModule(x, y) ? 0 : 1;                  // Black or white module
+            for (int dy = 0; dy < scaleY; dy++) {                    // vertical scaling
+                for (int dx = 0; dx < scaleX; dx++) {                // horizontal scaling
+                    int xPos = startX + (x + border) * scaleX + dx;  // Horizontal position
+                    int yPos = startY + (y + border) * scaleY + dy;  // Vertical position
+                    setPixel(xPos, yPos, color);
+                }
+            }
+        }
+    }
+}
+
+// Set a pixel in CGA 320x200 4 color mode
 static void setPixel(int x, int y, int color) {
-	if (x < 0 || x >= 320 || y < 0 || y >= 200) {
-	return;  // Ignore out-of-bounds pixels
-	}
-	
-	uint8_t far* video = (uint8_t far*)0xB8000000L;
-    
-	// Calculate byte offset
-	uint16_t offset = ((y & 1) << 13) + (y >> 1) * 80 + (x >> 2);
-	uint8_t shift = (3 - (x & 3)) * 2; // shift amount for pixel within the byte
-	
-	uint8_t mask = 0x03 << shift;      // mask to clear pixel
-	video[offset] = (video[offset] & ~mask) | ((color & 0x03) << shift);
+    if (x < 0 || x >= 320 || y < 0 || y >= 200) {
+        return;  // Ignore out-of-bounds pixels
+    }
+
+    uint8_t far* video = (uint8_t far*)0xB8000000L;
+
+    // Calculate byte offset
+    uint16_t offset = ((y & 1) << 13) + (y >> 1) * 80 + (x >> 2);
+    uint8_t shift = (3 - (x & 3)) * 2;  // shift amount for pixel within the byte
+
+    uint8_t mask = 0x03 << shift;  // mask to clear pixel
+    video[offset] = (video[offset] & ~mask) | ((color & 0x03) << shift);
 }
 
-// Function to render a centered QR code in CGA 320x200 mode
-static void printQrCGA(const QrCode &qr, const char *info) {
-	const int border = 4;  // Border size in QR modules
-	const int scaleX = 2;  // Horizontal scale factor (pixels per module)
-	const int scaleY = 2;  // Vertical scale factor (pixels per module)
+// MS-DOS Interrupt call to get the system codepage
+static uint16_t getSystemCodepage() {
+    union REGS regs;
 
-	// Calculate the total QR code size in pixels
-	int qrSize = qr.getSize() + 2 * border; // QR code size including border (in modules)
-	int pixelWidth = qrSize * scaleX;       // Total width in pixels
-	int pixelHeight = qrSize * scaleY;      // Total height in pixels
+    // Set up the interrupt call
+    regs.h.ah = 0x66;  // High byte of AX = 0x66
+    regs.h.al = 0x01;  // Low byte of AX = 0x01 (function 0x6601)
 
-	// Ensure the QR code fits within the 320x200 resolution
-	if (pixelWidth > 320 || pixelHeight > 200) {
-		std::cerr << "Error: QR code is too large to fit on the screen." << std::endl;
-		return;
-	}
+    int86(0x21, &regs, &regs);  // Call interrupt 0x21
 
-	// Calculate the starting position to center the QR code
-	int startX = (320 - pixelWidth) / 2;  // Horizontal centering
-	int startY = (200 - pixelHeight) / 2; // Vertical centering
+    // Check if the carry flag is set (error)
+    if (regs.x.cflag) {
+        return 0;  // Return 0 to indicate an error
+    }
 
-	// remember current mode and set CGA 320x200 4 color mode
-	uint8_t initialVideoMode = getVideoMode();
-	setVideoMode(0x04);
-
-	std::cout << info << std::endl;
-
-	// Render the QR code
-	for (int y = -border; y < qr.getSize() + border; y++) {  // rows
-		for (int x = -border; x < qr.getSize() + border; x++) {  // columns
-			int color = qr.getModule(x, y) ? 0 : 1;  // Black or white module
-			for (int dy = 0; dy < scaleY; dy++) {  // vertical scaling
-				for (int dx = 0; dx < scaleX; dx++) {  // horizontal scaling
-					int xPos = startX + (x + border) * scaleX + dx;  // Horizontal position
-					int yPos = startY + (y + border) * scaleY + dy;  // Vertical position
-					setPixel(xPos, yPos, color);
-				}
-			}
-		}
-	}
-	
-	// Wait for a key press
-	getch();
-	
-	// Restore previous mode
-	setVideoMode(initialVideoMode);
+    return regs.x.dx;  // Return the system (default) codepage
 }
-
