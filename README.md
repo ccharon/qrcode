@@ -18,7 +18,7 @@ Start the program with your text as an argument. If the text contains spaces, en
 
 | C:\>qrcode.exe "https://github.com/ccharon/qrcode"    |
 | ----------------------------------------------------- |
-| ![qrcode dosbox](./doc/qrcode.png)                    | 
+| ![qrcode dosbox](./doc/qrcode2.png)                    | 
 
 | C:\>qrcode.exe "WIFI:T:WPA;S:examplenet;P:secret;;"   |
 | ----------------------------------------------------- |
