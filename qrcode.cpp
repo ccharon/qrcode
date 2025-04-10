@@ -29,6 +29,8 @@
 #include "charconv.hpp"
 #include "qrcodegen.hpp"
 
+#define QR_CODE_VERSION "1.0.3"
+
 using charconv::CharConverter;
 using qrcodegen::QrCode;
 using qrcodegen::QrSegment;
@@ -79,7 +81,7 @@ int main(int argc, char* argv[]) {
 
 // Function to print usage information
 static void printUsage() {
-    std::cout << "Generate QR Codes for MS-DOS CGA systems. (c) 2025 Christian Charon" << std::endl
+    std::cout << "QRCode Generator " << QR_CODE_VERSION << " for MS-DOS CGA systems. (c) 2025 Christian Charon" << std::endl
               << "Contact: ccharon@mailbox.org | Licensed under the MIT License." << std::endl
               << "Sources: https://github.com/ccharon/qrcode" << std::endl
               << std::endl
@@ -93,7 +95,7 @@ static void printUsage() {
               << "  qrcode.exe \"WIFI:T:WPA;S:examplenet;P:secret;;\"" << std::endl
               << std::endl
               << "The text for the QR Code is encoded to UTF-8. Automatic conversion from" << std::endl
-              << "codepages 437, 850, 852, 858, 866, and 737 is supported, 437 is fallback." << std::endl
+              << "codepages 437, 850, 852, 858, 866, and 737 is supported, 437 is the fallback." << std::endl
               << std::endl;
 }
 
