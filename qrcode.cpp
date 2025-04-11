@@ -171,17 +171,12 @@ static void setPixel(int x, int y, int color) {
 // MS-DOS Interrupt call to get the system codepage
 static uint16_t getSystemCodepage() {
     union REGS regs;
+    regs.h.ah = 0x66;
+    regs.h.al = 0x01;
+    int86(0x21, &regs, &regs); 
 
-    // Set up the interrupt call
-    regs.h.ah = 0x66;  // High byte of AX = 0x66
-    regs.h.al = 0x01;  // Low byte of AX = 0x01 (function 0x6601)
-
-    int86(0x21, &regs, &regs);  // Call interrupt 0x21
-
-    // Check if the carry flag is set (error)
     if (regs.x.cflag) {
         return 0;  // Return 0 to indicate an error
     }
-
     return regs.x.dx;  // Return the system (default) codepage
 }
