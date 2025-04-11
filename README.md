@@ -16,15 +16,15 @@ Start the program with your text as an argument. If the text contains spaces, en
 
 ### Examples
 
-| C:\>qrcode.exe "https://github.com/ccharon/qrcode"    |
+| C:\\>qrcode.exe "https://github.com/ccharon/qrcode"    |
 | ----------------------------------------------------- |
 | ![qrcode dosbox](./doc/qrcode2.png)                    | 
 
-| C:\>qrcode.exe "WIFI:T:WPA;S:examplenet;P:secret;;"   |
+| C:\\>qrcode.exe "WIFI:T:WPA;S:examplenet;P:secret;;"   |
 | ----------------------------------------------------- |
 | ![qrcode dosbox](./doc/qrwifi.png)                    | 
 
-| C:\>qrcode.exe                                        |
+| C:\\>qrcode.exe                                        |
 | ----------------------------------------------------- |
 | ![qrcode dosbox](./doc/usage.png)                     | 
 
