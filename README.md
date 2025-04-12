@@ -26,7 +26,7 @@ Start the program with your text as an argument. If the text contains spaces, en
 
 | C:\\>qrcode.exe                                        |
 | ----------------------------------------------------- |
-| ![qrcode dosbox](./doc/usage.png)                     | 
+| ![qrcode dosbox](./doc/usage2.png)                     | 
 
 ## Project Setup
 The project was built using Open Watcom 1.9 on Windows. To build the project:
